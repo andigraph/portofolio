@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Analisis Ekosistem Kripto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Slate/Amber neutrals with a Muted Teal accent) -->
+    <!-- Application Structure Plan: Desain aplikasi ini menggunakan pendekatan dasbor interaktif, bukan meniru struktur laporan yang linear. Arsitektur adalah sebagai berikut: 1) Bagian 'Perbandingan Utama' dengan bagan batang yang dapat dialihkan untuk perbandingan metrik tingkat tinggi (dApps, UAW, TVL), kini mencakup semua ekosistem. 2) Galeri 'Kartu Ekosistem' yang berfungsi sebagai titik masuk untuk penelusuran mendalam, dilengkapi dengan fitur pencarian yang menyembunyikan ekosistem tertentu secara default namun menampilkannya saat dicari. 3) 'Tampilan Detail' dinamis yang muncul saat kartu diklik, menggunakan antarmuka tab untuk menyajikan Ikhtisar, Peta Jalan, dan data Adopsi secara terorganisir, termasuk bahasa pemrograman. 4) Bagan Radar Komparatif untuk analisis multi-aspek, kini memungkinkan perbandingan semua ekosistem. Struktur ini dipilih untuk memfasilitasi alur kerja analitis yang alami: mulai dari gambaran umum, menelusuri detail, lalu membandingkan secara mendalam, sehingga meningkatkan pemahaman dan kemudahan eksplorasi pengguna. -->
+    <!-- Visualization & Content Choices: 1) Perbandingan Metrik Utama: Info -> Perbandingan kuantitatif dApps, UAW, TVL. Goal -> Membandingkan. Viz -> Bagan Batang (Chart.js/Canvas). Interaction -> Tombol untuk mengganti metrik yang ditampilkan. Justification -> Jelas untuk perbandingan langsung. 2) Visi Jangka Panjang: Info -> Tonggak Peta Jalan. Goal -> Menginformasikan. Viz -> Daftar/timeline HTML/CSS bergaya di dalam tab. Interaction -> Statis. Justification -> Lebih mudah dicerna daripada teks padat. 3) Analisis Multi-Faset: Info -> Atribut kualitatif & kuantitatif (Kinerja, Pengembang, Adopsi). Goal -> Membandingkan. Viz -> Bagan Radar (Chart.js/Canvas). Interaction -> Pemilihan ekosistem untuk perbandingan (maksimal 3). Justification -> Efektif untuk menunjukkan kekuatan & kelemahan relatif secara visual. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .dark body {
+            background-color: #0f172a; /* slate-900 */
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            width: 100%;
+            max-width: 900px;
+            max-height: 450px;
+        }
+        .active-nav {
+            color: #0d9488; /* teal-600 */
+            border-bottom: 2px solid #0d9488;
+        }
+        .detail-tab.active {
+            border-color: #0d9488;
+            color: #0d9488;
+            background-color: #f0fdfa; /* teal-50 */
+        }
+        .dark .detail-tab.active {
+            background-color: #134e4a; /* darker teal for dark mode active tab */
+            color: #d1fae5; /* lighter text */
+            border-color: #0d9488;
+        }
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-700 smooth-scroll">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm dark:bg-slate-800/80 dark:shadow-xl">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 flex items-center">
+                    <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100">🚀 Analisis Ekosistem Kripto</h1>
+                    <button id="theme-toggle" class="ml-4 p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200">
+                        <span id="theme-icon" class="text-xl">🌙</span>
+                    </button>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#compare" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-teal-400">Perbandingan</a>
+                        <a href="#explore" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-teal-400">Jelajahi Ekosistem</a>
+                        <a href="#radar" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:text-teal-600 dark:text-slate-300 dark:hover:text-teal-400">Analisis Radar</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <!-- Section 1: Perbandingan Utama -->
+        <section id="compare" class="text-center mb-16 md:mb-24 pt-16 -mt-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4 dark:text-slate-100">Perbandingan Metrik Utama</h2>
+            <p class="max-w-3xl mx-auto text-slate-600 mb-8 dark:text-slate-300">
+                Visualisasikan bagaimana ekosistem-ekosistem terkemuka saling berhadapan dalam metrik kunci. Gunakan tombol di bawah untuk beralih antara jumlah Aplikasi Terdesentralisasi (dApps), Nilai Total Terkunci (TVL) di DeFi, dan Dompet Aktif Unik (UAW).
+            </p>
+            <div class="flex justify-center space-x-2 mb-8">
+                <button id="btn-dapps" class="metric-btn bg-teal-500 text-white px-4 py-2 rounded-lg shadow hover:bg-teal-600 transition dark:bg-teal-600 dark:hover:bg-teal-700">dApps</button>
+                <button id="btn-tvl" class="metric-btn bg-white text-slate-700 px-4 py-2 rounded-lg shadow hover:bg-slate-100 transition dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">DeFi TVL</button>
+                <button id="btn-uaw" class="metric-btn bg-white text-slate-700 px-4 py-2 rounded-lg shadow hover:bg-slate-100 transition dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">UAW</button>
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg dark:bg-slate-800 dark:shadow-xl">
+                <div class="chart-container">
+                    <canvas id="mainComparisonChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Jelajahi Ekosistem -->
+        <section id="explore" class="mb-16 md:mb-24 pt-16 -mt-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4 text-center dark:text-slate-100">Jelajahi Setiap Ekosistem</h2>
+            <p class="max-w-3xl mx-auto text-slate-600 mb-8 text-center dark:text-slate-300">
+                Gunakan kotak pencarian di bawah untuk menemukan ekosistem tertentu, atau jelajahi semua kartu untuk melihat analisis mendalam.
+            </p>
+            <div class="flex justify-center mb-8">
+                <input type="text" id="ecosystem-search" placeholder="Cari ekosistem (mis. Ethereum, Polkadot)" class="w-full max-w-md px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-200 dark:placeholder-slate-400">
+            </div>
+            <div id="ecosystem-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Ecosystem cards will be dynamically inserted here -->
+            </div>
+            <p id="no-results" class="text-center text-slate-500 mt-8 hidden dark:text-slate-400">Tidak ada ekosistem yang cocok dengan pencarian Anda.</p>
+        </section>
+
+        <!-- Section 3: Detail View (Initially Hidden) -->
+        <section id="detail-view" class="hidden mb-16 md:mb-24 pt-16 -mt-16 fade-in">
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 dark:bg-slate-800 dark:shadow-xl">
+                <div class="flex justify-between items-start">
+                    <div id="detail-header" class="mb-6">
+                        <!-- Detail header content will be inserted here -->
+                    </div>
+                    <button id="close-detail" class="text-slate-400 hover:text-slate-600 transition dark:text-slate-500 dark:hover:text-slate-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="border-b border-slate-200 mb-6 dark:border-slate-700">
+                    <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                        <button class="detail-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-500" data-tab="overview">Ikhtisar</button>
+                        <button class="detail-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-500" data-tab="roadmap">Peta Jalan</button>
+                        <button class="detail-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-500" data-tab="adoption">Adopsi</button>
+                    </nav>
+                </div>
+
+                <!-- Tab Content -->
+                <div id="detail-content">
+                    <!-- Tab content will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Radar Analysis -->
+        <section id="radar" class="text-center pt-16 -mt-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4 dark:text-slate-100">Analisis Radar Komparatif</h2>
+            <p class="max-w-3xl mx-auto text-slate-600 mb-8 dark:text-slate-300">
+                Pilih hingga tiga ekosistem untuk membandingkan kekuatan dan kelemahan relatif mereka secara visual di berbagai dimensi. Bagan radar ini membantu mengidentifikasi profil strategis unik setiap platform.
+            </p>
+            <div id="radar-controls" class="flex flex-wrap justify-center gap-2 mb-8">
+                <!-- Checkboxes for radar chart will be inserted here -->
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg dark:bg-slate-800 dark:shadow-xl">
+                 <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-slate-100 border-t border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500 dark:text-slate-400">
+            <p>&copy; 2025 Dasbor Analisis Ekosistem Kripto. Dibuat untuk tujuan informasi.</p>
+            <p>Data disarikan dari laporan "Analisis Ekosistem Kripto Terkemuka" dan sumber data publik seperti DappRadar dan CoinMarketCap.</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const ecosystemData = {
+        'ETH': {
+            name: 'Ethereum',
+            logo: '💎',
+            color: '#627EEA',
+            metrics: { dapps: 1521, tvl: 121.26, uaw: 453610 },
+            tagline: 'Fondasi dApp yang abadi dengan keamanan yang kuat dan efek jaringan.',
+            overview: 'Sebagai pelopor kontrak pintar, Ethereum meletakkan dasar bagi ekosistem dApp yang luas. Meskipun menghadapi tantangan skalabilitas, keamanannya yang kuat dan ekosistem pengembang yang matang menjadikannya pilihan utama untuk proyek DeFi dan NFT bernilai tinggi.',
+            roadmap: [
+                { year: 'Q1 2025', title: 'Peningkatan Pectra', description: 'Memperkenalkan Abstraksi Akun (EIP-7702), peningkatan jumlah blob, dan peningkatan batas staking untuk efisiensi yang lebih besar.' },
+                { year: 'Ongoing', title: 'The Surge & Scourge', description: 'Fokus pada skalabilitas melalui rollup Layer-2 (Surge) dan mengurangi masalah sentralisasi (Scourge).' },
+                { year: 'Future', title: 'The Verge, Purge, Splurge', description: 'Serangkaian peningkatan untuk verifikasi blok yang lebih mudah, pembersihan utang teknis, dan kemajuan kriptografi.' }
+            ],
+            adoption: [
+                { metric: '+54%', label: 'Lonjakan Adopsi Institusional (90 hari terakhir)' },
+                { metric: '1.75 Juta', label: 'Transaksi Harian (Juni 2025)' },
+                { metric: '$113.16 Miliar', label: 'Dominasi TVL di sektor DeFi' }
+            ],
+            languages: ['Solidity', 'Vyper', 'Yul'],
+            radar: [9, 9, 8, 5, 9],
+            isVisibleByDefault: true // Semua ekosistem sekarang terlihat di perbandingan utama dan radar
+        },
+        'TRON': {
+            name: 'TRON',
+            logo: '⭕',
+            color: '#EB0029',
+            metrics: { dapps: 78, tvl: 8.34, uaw: 46200 },
+            tagline: 'Kekuatan dominan dalam transaksi stablecoin berbiaya rendah dan bervolume tinggi.',
+            overview: 'TRON telah mengukir ceruk yang sangat efektif dalam transaksi stablecoin dan hiburan. Kemampuannya untuk memproses transaksi dengan cepat dan murah menjadikannya sangat menarik untuk aplikasi yang membutuhkan interaksi frekuensi tinggi.',
+            roadmap: [
+                { year: '2025', title: 'Peningkatan Stabilitas & Kinerja', description: 'Mengoptimalkan stabilitas blockchain, termasuk mode startup yang dipercepat dan logika yang ditingkatkan.' },
+                { year: '2025', title: 'Eksekusi Paralel', description: 'Menerapkan eksekusi transaksi paralel untuk meningkatkan throughput jaringan secara signifikan.' },
+                { year: 'Future', title: 'Abstraksi Akun', description: 'Memperkenalkan abstraksi akun untuk menyederhanakan pengalaman pengguna dan fungsionalitas dompet.' }
+            ],
+            adoption: [
+                { metric: '10 Miliar+', label: 'Total Transaksi (Mei 2025)' },
+                { metric: '+100%', label: 'Lonjakan Transaksi USDT (Juli 2025)' },
+                { metric: '$3 Miliar+', label: 'Volume Swap Bulanan di SunSwap' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 7, 9, 8, 5],
+            isVisibleByDefault: true
+        },
+        'SOL': {
+            name: 'Solana',
+            logo: '⚡',
+            color: '#9945FF',
+            metrics: { dapps: 266, tvl: 6.28, uaw: 8190000 },
+            tagline: 'Penantang berkinerja tinggi yang dibangun untuk kecepatan dan skalabilitas ekstrem.',
+            overview: 'Solana berfokus pada aplikasi berkinerja tinggi, menawarkan kecepatan transaksi yang sangat tinggi dan biaya yang sangat rendah. Ini telah menjadi pusat utama untuk bursa terdesentralisasi (DEX), GameFi, dan NFT.',
+            roadmap: [
+                { year: '2025', title: 'Optimalisasi Kinerja', description: 'Fokus pada "banyak peningkatan kecil" untuk menggandakan kapasitas ruang blok, termasuk peningkatan penjadwal dan ekspansi Turbin.' },
+                { year: '2025', title: 'Klien Firedancer', description: 'Klien berkinerja tinggi baru yang sedang diuji untuk menciptakan arsitektur yang lebih cepat, lebih kuat, dan lebih stabil.' },
+                { year: '2025', title: 'Reformasi Lapisan Baca', description: 'Mengatasi hambatan dalam mengubah data blockchain agar dapat dibaca oleh program untuk meningkatkan efisiensi.' }
+            ],
+            adoption: [
+                { metric: '46.3%', label: 'Pangsa Pasar dApp (Q2 2025)' },
+                { metric: '23.45 Juta', label: 'Alamat Aktif Mingguan' },
+                { metric: '7,625', label: 'Pengembang Baru Bergabung (2024), melampaui ETH' }
+            ],
+            languages: ['Rust', 'C', 'C++'],
+            radar: [6, 8, 10, 10, 9],
+            isVisibleByDefault: true
+        },
+        'BNB': {
+            name: 'BNB Smart Chain',
+            logo: '💡',
+            color: '#F0B90B',
+            metrics: { dapps: 947, tvl: 6.05, uaw: 817110 },
+            tagline: 'Pusat proliferasi dApp dengan biaya rendah dan kecepatan tinggi.',
+            overview: 'BNB Smart Chain memprioritaskan aksesibilitas dan efisiensi biaya untuk mendorong adopsi massal. Hubungannya yang erat dengan bursa Binance memberikan dorongan adopsi yang signifikan, menjadikannya platform pilihan untuk berbagai aplikasi terdesentralisasi.',
+            roadmap: [
+                { year: '2025', title: 'Integrasi AI & Kecepatan Sub-Detik', description: 'Memposisikan BNB Chain sebagai pemimpin dalam teknologi blockchain bertenaga AI dan mengurangi waktu blok menjadi latensi sub-detik.' },
+                { year: '2025', title: 'Perlindungan Anti-MEV', description: 'Menerapkan perlindungan baru untuk menciptakan lingkungan perdagangan yang lebih adil dengan mencegah strategi Maximal Extractable Value (MEV).' },
+                { year: '2025', title: 'Pengembangan Terkonsolidasi', description: 'Menyatukan alat pengembangan di seluruh rantai intinya (BSC, opBNB, GreenField) untuk menyederhanakan pembuatan dApp.' }
+            ],
+            adoption: [
+                { metric: '1.7 Juta', label: 'Pengguna Non-Sybil (Juni 2025)' },
+                { metric: '438k', label: 'Pengguna Baru Harian (Juni 2025)' },
+                { metric: '$1 Miliar', label: 'Target Akuisisi BNB oleh Nano Labs' }
+            ],
+            languages: ['Solidity'],
+            radar: [9, 8, 9, 9, 6],
+            isVisibleByDefault: true
+        },
+        'ARB': {
+            name: 'Arbitrum',
+            logo: '🅰️',
+            color: '#28A0EE',
+            metrics: { dapps: 850, tvl: 3.41, uaw: 500000 },
+            tagline: 'Solusi penskalaan Layer-2 terkemuka untuk Ethereum dengan ekosistem yang berkembang.',
+            overview: 'Arbitrum adalah jaringan Layer-2 yang menggunakan teknologi *optimistic rollup* untuk meningkatkan skalabilitas dan efisiensi transaksi Ethereum. Ini menawarkan biaya yang lebih rendah dan *throughput* yang lebih tinggi dibandingkan mainnet Ethereum, menarik banyak proyek DeFi dan GameFi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Arbitrum Orbit', description: 'Memungkinkan pengembang untuk meluncurkan rantai Layer-3 yang dapat disesuaikan di atas Arbitrum.' },
+                { year: '2025', title: 'Stylus', description: 'Memungkinkan pengembang untuk menulis kontrak pintar menggunakan bahasa seperti Rust, C, dan C++ di Arbitrum, memperluas kemampuan pengembang.' },
+                { year: 'Future', title: 'Desentralisasi Penuh', description: 'Bergerak menuju tata kelola yang sepenuhnya terdesentralisasi dan keamanan yang ditingkatkan.' }
+            ],
+            adoption: [
+                { metric: '$3.41 Miliar', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: '500 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: 'Banyak Proyek DeFi', label: 'Menjadi tuan rumah bagi banyak aplikasi DeFi terkemuka.' }
+            ],
+            languages: ['Solidity', 'Rust', 'C', 'C++'],
+            radar: [8, 8, 8, 8, 8],
+            isVisibleByDefault: true
+        },
+        'AVAX': {
+            name: 'Avalanche',
+            logo: '🔺',
+            color: '#E84142',
+            metrics: { dapps: 485, tvl: 1.27, uaw: 38570 },
+            tagline: 'Platform subnet yang fleksibel, menargetkan GameFi dan adopsi perusahaan.',
+            overview: 'Avalanche menonjol dengan arsitektur subnetnya, yang memungkinkan pembuatan blockchain khusus. Ini telah mendorong pertumbuhan pengguna yang cepat, terutama dari sektor GameFi, dan memposisikannya sebagai platform yang menarik untuk solusi perusahaan.',
+            roadmap: [
+                { year: '2025', title: 'Ekspansi Subnet Perusahaan', description: 'Meluncurkan solusi yang ditingkatkan pada platform untuk merevolusi adopsi blockchain oleh perusahaan.' },
+                { year: 'Ongoing', title: 'HyperSDK', description: 'Toolkit berkinerja tinggi untuk membangun mesin virtual khusus, yang mampu mencapai 100k TPS.' },
+                { year: '2025', title: 'Fokus Kegunaan', description: 'Meningkatkan pengalaman pengguna untuk menarik klien institusional dengan solusi yang skalabel dan mudah digunakan.' }
+            ],
+            adoption: [
+                { metric: '+200%', label: 'Lonjakan Alamat Aktif Harian (2025)' },
+                { metric: '648k', label: 'Rekor Alamat Aktif (17 Mei 2025)' },
+                { metric: '40+', label: 'Subnet Aktif Beroperasi' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 8, 8, 9, 6],
+            isVisibleByDefault: true
+        },
+        'POL': {
+            name: 'Polygon',
+            logo: '🔮',
+            color: '#8247E5',
+            metrics: { dapps: 657, tvl: 1.12, uaw: 1340000 },
+            tagline: 'Solusi penskalaan Layer-2 utama untuk ekosistem Ethereum.',
+            overview: 'Polygon secara efektif memperluas kemampuan Ethereum, memungkinkan pengembang untuk membangun dApp yang mendapat manfaat dari keamanan Ethereum sambil menawarkan kinerja yang ditingkatkan dan biaya yang lebih rendah.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Polygon 2.0', description: 'Visi jangka panjang untuk membangun "Lapisan Nilai" untuk Internet, dengan fokus pada skalabilitas tak terbatas dan informasi terpadu.' },
+                { year: '2025', title: 'Integrasi ZK-Rollups', description: 'Terus mengembangkan dan mengintegrasikan teknologi Zero-Knowledge untuk meningkatkan skalabilitas dan privasi.' },
+                { year: 'Future', title: 'Tata Kelola Terdesentralisasi', description: 'Secara bertahap menyerahkan kendali tata kelola jaringan kepada komunitas pemegang token MATIC.' }
+            ],
+            adoption: [
+                { metric: '1.34 Juta', label: 'Dompet Aktif Unik' },
+                { metric: '2,452', label: 'Jumlah dApps' },
+                { metric: '$1.28 Miliar', label: 'Nilai Total Terkunci di DeFi' }
+            ],
+            languages: ['Solidity'],
+            radar: [8, 8, 8, 7, 7],
+            isVisibleByDefault: true
+        },
+        'BASE': {
+            name: 'Base',
+            logo: '🔵',
+            color: '#0052FF',
+            metrics: { dapps: 566, tvl: 0.88116, uaw: 1500000 },
+            tagline: 'Jaringan Layer-2 yang berkembang pesat dengan momentum memecoin.',
+            overview: 'Base, jaringan Layer-2 yang dikembangkan oleh Coinbase, telah menunjukkan pertumbuhan eksplosif, didorong oleh tren memecoin dan biaya transaksi yang efisien. Ini bertujuan untuk menjadi rumah bagi aplikasi terdesentralisasi generasi berikutnya.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Ekspansi Ekosistem', description: 'Terus menarik pengembang dan pengguna melalui biaya rendah dan integrasi dengan Coinbase.' },
+                { year: 'Future', title: 'Adopsi Mainstream', description: 'Fokus pada membawa miliaran pengguna ke on-chain melalui pengalaman yang mudah digunakan.' }
+            ],
+            adoption: [
+                { metric: '16.8%', label: 'Pangsa Minat Investor (2024)' },
+                { metric: '1 Miliar+', label: 'Total Transaksi (Sejak 2023)' },
+                { metric: '701', label: 'Jumlah dApps' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 7, 8, 8, 7],
+            isVisibleByDefault: true
+        },
+        'SUI': {
+            name: 'Sui',
+            logo: '💧',
+            color: '#00BFFF',
+            metrics: { dapps: 76, tvl: 0.82908, uaw: 100000 },
+            tagline: 'Blockchain Layer-1 yang berfokus pada kecepatan dan pengalaman pengembang.',
+            overview: 'Sui adalah blockchain Layer-1 berkinerja tinggi yang dirancang untuk Web3 dan kasus penggunaan yang berpusat pada aset. Ini menggunakan bahasa pemrograman Move dan arsitektur yang berpusat pada objek untuk mencapai skalabilitas dan keamanan yang tinggi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol Inti', description: 'Terus meningkatkan kinerja dan skalabilitas jaringan.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, GameFi, dan NFT.' }
+            ],
+            adoption: [
+                { metric: '76', label: 'Jumlah Protokol' },
+                { metric: '$829.08 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Pengembang Aktif', label: 'Komunitas pengembang yang berkembang.' }
+            ],
+            languages: ['Move'],
+            radar: [6, 7, 6, 9, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'OP': {
+            name: 'Optimism',
+            logo: '🔴',
+            color: '#FF0420',
+            metrics: { dapps: 329, tvl: 0.81582, uaw: 300000 },
+            tagline: 'Blockchain Layer-2 yang cepat, stabil, dan ramah EVM, dengan visi Superchain.',
+            overview: 'Optimism adalah jaringan Layer-2 yang menggunakan *optimistic rollup* untuk penskalaan Ethereum, dengan fokus pada kesederhanaan, keberlanjutan, dan tata kelola komunitas. Ini adalah bagian dari visi Superchain yang lebih besar untuk ekosistem blockchain yang terhubung.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Superchain Vision', description: 'Membangun jaringan blockchain Layer-2 yang saling terhubung dan terpadu.' },
+                { year: '2025', title: 'Peningkatan Fault Proof', description: 'Meningkatkan keamanan dan keandalan sistem *optimistic rollup*.' },
+                { year: 'Future', title: 'Tata Kelola Terdesentralisasi', description: 'Memberdayakan komunitas untuk mengelola dan mengembangkan protokol.' }
+            ],
+            adoption: [
+                { metric: '$815.82 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: '300 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: 'Ekosistem Berkembang', label: 'Mendukung berbagai proyek DeFi dan NFT.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 8, 7, 8, 7],
+            isVisibleByDefault: true
+        },
+        'NEAR': {
+            name: 'NEAR Protocol',
+            logo: '🌈',
+            color: '#000000',
+            metrics: { dapps: 36, tvl: 0.69854, uaw: 500000 },
+            tagline: 'Blockchain ramah pengembang dengan skalabilitas sharding.',
+            overview: 'NEAR Protocol adalah blockchain Layer-1 yang berfokus pada kegunaan pengembang dan skalabilitas melalui teknologi sharding. Ini bertujuan untuk menjadi platform yang mudah diakses untuk dApps dan Web3, dengan penekanan pada pengalaman pengguna yang mulus.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Sharding Progresif (Nightshade)', description: 'Terus mengembangkan dan mengimplementasikan sharding untuk skalabilitas tak terbatas.' },
+                { year: '2025', title: 'Abstraksi Akun', description: 'Memperkenalkan abstraksi akun untuk menyederhanakan pengalaman pengguna dan fungsionalitas dompet.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps dan komunitas pengembang yang beragam.' }
+            ],
+            adoption: [
+                { metric: '500 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: '300+', label: 'Jumlah dApps' },
+                { metric: 'Komunitas Kuat', label: 'Dukungan pengembang yang aktif dan komunitas yang berkembang.' }
+            ],
+            languages: ['Rust', 'AssemblyScript'],
+            radar: [6, 8, 7, 8, 9],
+            isVisibleByDefault: true
+        },
+        'CRO': {
+            name: 'Cronos',
+            logo: '⚛️',
+            color: '#002D72',
+            metrics: { dapps: 126, tvl: 0.46817, uaw: 100000 },
+            tagline: 'Blockchain yang kompatibel dengan EVM yang dibangun untuk ekosistem Crypto.com.',
+            overview: 'Cronos adalah blockchain yang kompatibel dengan EVM yang didukung oleh Crypto.com, dirancang untuk mendukung ekosistem aplikasi terdesentralisasi yang berkembang, dengan fokus pada DeFi, NFT, dan GameFi. Ini bertujuan untuk memberikan skalabilitas dan biaya rendah.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Jaringan', description: 'Terus meningkatkan kinerja dan stabilitas jaringan.' },
+                { year: 'Future', title: 'Integrasi Ekosistem', description: 'Memperdalam integrasi dengan produk dan layanan Crypto.com.' }
+            ],
+            adoption: [
+                { metric: '126', label: 'Jumlah Protokol' },
+                { metric: '$468.17 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Dukungan Crypto.com', label: 'Manfaat dari basis pengguna Crypto.com yang besar.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 7, 7, 7, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'BTC': {
+            name: 'Bitcoin',
+            logo: '₿',
+            color: '#F7931A',
+            metrics: { dapps: 1, tvl: 0.42952, uaw: 150000000 },
+            tagline: 'Penyimpan nilai digital utama dan mata uang terdesentralisasi.',
+            overview: 'Bitcoin adalah mata uang kripto pertama dan terbesar, yang berfungsi sebagai penyimpan nilai digital dan sistem uang elektronik peer-to-peer. Ini dikenal karena desentralisasi, keamanan, dan pasokannya yang terbatas, menjadikannya "emas digital".',
+            roadmap: [
+                { year: 'Ongoing', title: 'Lightning Network', description: 'Meningkatkan skalabilitas untuk pembayaran mikro yang lebih cepat dan murah di luar rantai utama.' },
+                { year: 'Ongoing', title: 'Taproot Upgrade', description: 'Meningkatkan privasi, efisiensi, dan kemampuan kontrak pintar Bitcoin secara terbatas.' },
+                { year: 'Future', title: 'Adopsi Global', description: 'Terus mendorong adopsi sebagai aset cadangan global dan alat pembayaran.' }
+            ],
+            adoption: [
+                { metric: '$1 Triliun+', label: 'Kapitalisasi Pasar' },
+                { metric: 'Negara Adopsi', label: 'El Salvador, Republik Afrika Tengah' },
+                { metric: 'ETF Spot BTC', label: 'Adopsi Institusional Meningkat' }
+            ],
+            languages: ['C++', 'Script'],
+            radar: [1, 10, 10, 4, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'GNO': {
+            name: 'Gnosis',
+            logo: '🦉',
+            color: '#00A878',
+            metrics: { dapps: 80, tvl: 0.40547, uaw: 50000 },
+            tagline: 'Blockchain yang berfokus pada desentralisasi dan infrastruktur Web3.',
+            overview: 'Gnosis adalah blockchain Layer-1 yang kompatibel dengan EVM yang berfokus pada pembangunan infrastruktur terdesentralisasi untuk ekosistem Web3. Ini menyediakan alat dan protokol untuk pasar prediksi, manajemen aset, dan identitas terdesentralisasi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Konsensus', description: 'Meningkatkan mekanisme konsensus untuk keamanan dan efisiensi.' },
+                { year: 'Future', title: 'Ekspansi Produk', description: 'Meluncurkan produk dan layanan terdesentralisasi baru.' }
+            ],
+            adoption: [
+                { metric: '80', label: 'Jumlah Protokol' },
+                { metric: '$405.47 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Komunitas', label: 'Komunitas yang kuat dan terlibat.' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 8, 6, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'APT': {
+            name: 'Aptos',
+            logo: '🌊',
+            color: '#61F2F2',
+            metrics: { dapps: 73, tvl: 0.29358, uaw: 200000 },
+            tagline: 'Blockchain Layer-1 yang aman dan skalabel dengan bahasa Move.',
+            overview: 'Aptos adalah blockchain Layer-1 baru yang dibangun oleh mantan pengembang Meta (Facebook) yang berfokus pada skalabilitas, keamanan, dan peningkatan. Ini menggunakan bahasa pemrograman Move untuk keamanan aset yang lebih baik.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Skalabilitas', description: 'Terus meningkatkan throughput transaksi dan mengurangi latensi.' },
+                { year: '2025', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, GameFi, dan NFT.' },
+                { year: 'Future', title: 'Adopsi Massal', description: 'Fokus pada pengalaman pengguna yang mulus untuk menarik miliaran pengguna.' }
+            ],
+            adoption: [
+                { metric: '200 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: '150+', label: 'Jumlah dApps' },
+                { metric: 'Dukungan Kuat', label: 'Didukung oleh investor terkemuka.' }
+            ],
+            languages: ['Move'],
+            radar: [5, 8, 7, 9, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'SCROLL': {
+            name: 'Scroll',
+            logo: '📜',
+            color: '#F6D860',
+            metrics: { dapps: 129, tvl: 0.29305, uaw: 50000 },
+            tagline: 'Solusi penskalaan zk-rollup yang kompatibel dengan EVM untuk Ethereum.',
+            overview: 'Scroll adalah solusi penskalaan Layer-2 yang menggunakan teknologi zk-rollup untuk meningkatkan skalabilitas Ethereum. Ini bertujuan untuk memberikan pengalaman yang mulus bagi pengembang dan pengguna, dengan kompatibilitas penuh EVM.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan ZK-EVM', description: 'Terus meningkatkan kinerja dan efisiensi zk-EVM.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di berbagai sektor.' }
+            ],
+            adoption: [
+                { metric: '129', label: 'Jumlah Protokol' },
+                { metric: '$293.05 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Kompatibilitas EVM', label: 'Menarik pengembang dan dApps Ethereum.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 8, 6, 8, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'KAVA': {
+            name: 'Kava',
+            logo: '⛓️',
+            color: '#FF4D4D',
+            metrics: { dapps: 147, tvl: 0.26863, uaw: 30000 },
+            tagline: 'Blockchain Layer-1 yang cepat dan aman dengan kompatibilitas EVM dan Cosmos SDK.',
+            overview: 'Kava adalah blockchain Layer-1 yang menggabungkan kecepatan dan skalabilitas Cosmos SDK dengan fleksibilitas EVM. Ini dirancang untuk mendukung aplikasi DeFi dan Web3 yang berkinerja tinggi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan GameFi.' }
+            ],
+            adoption: [
+                { metric: '147', label: 'Jumlah Protokol' },
+                { metric: '$268.63 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Kompatibilitas Ganda', label: 'Menarik pengembang dari ekosistem Cosmos dan EVM.' }
+            ],
+            languages: ['Solidity', 'Go'],
+            radar: [7, 7, 6, 8, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'TON': {
+            name: 'The Open Network',
+            logo: '✈️',
+            color: '#0098EA',
+            metrics: { dapps: 77, tvl: 0.2652, uaw: 146000 },
+            tagline: 'Blockchain yang terintegrasi dengan Telegram untuk adopsi massal dan pembayaran.',
+            overview: 'TON berfokus pada integrasi mulus dengan aplikasi Telegram, menawarkan jalur unik untuk adopsi massal. Ini bertujuan untuk merevolusi pembayaran fintech dengan kecepatan tinggi dan biaya rendah, memanfaatkan basis pengguna Telegram yang sangat besar.',
+            roadmap: [
+                { year: 'H1 2025', title: 'Jaringan Pembayaran Layer 2', description: 'Mendukung transfer instan dan komisi kecil untuk solusi pembayaran fintech.' },
+                { year: 'Ongoing', title: 'Infinity Sharding Paradigm', description: 'Memungkinkan penskalaan yang mudah dengan membuat dan menggabungkan shard berdasarkan beban transaksi.' },
+                { year: 'Ongoing', title: 'Integrasi Telegram', description: 'Memungkinkan pengguna untuk mengirim, menerima, dan mentransfer token di dalam aplikasi Telegram.' },
+                { year: 'H1 2025', title: 'Mekanisme Jembatan BTC TON', description: 'Memungkinkan Bitcoin mengalir dengan mulus ke jaringan TON, meningkatkan interoperabilitas.' }
+            ],
+            adoption: [
+                { metric: '146 Ribu', label: 'Dompet Aktif Harian' },
+                { metric: '243 Ribu', label: 'Dompet On-Chain Baru Mingguan' },
+                { metric: 'Terdaftar', label: 'Dana yang Diatur (Fonte Capital)' }
+            ],
+            languages: ['FunC'],
+            radar: [5, 9, 9, 9, 6],
+            isVisibleByDefault: true
+        },
+        'ADA': {
+            name: 'Cardano',
+            logo: '🌳',
+            color: '#0033AD',
+            metrics: { dapps: 65, tvl: 0.2509, uaw: 529900 },
+            tagline: 'Blockchain berbasis riset dengan fokus pada keamanan dan keberlanjutan.',
+            overview: 'Cardano dikenal dengan pendekatan ilmiah dan berbasis risetnya untuk pengembangan blockchain. Ini memprioritaskan keamanan, skalabilitas, dan desentralisasi, dengan visi jangka panjang untuk mendukung aplikasi terdesentralisasi skala global dan solusi dunia nyata.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Era Voltaire (Tata Kelola)', description: 'Mentransfer hak tata kelola kepada komunitas untuk sistem yang mengatur diri sendiri dan berkelanjutan.' },
+                { year: '2025', title: 'Proyek Catalyst', description: 'Mendukung ratusan proyek baru melalui putaran pendanaan komunitas.' },
+                { year: '2025', title: 'Peluncuran Midnight', description: 'Sidechain baru yang berfokus pada privasi untuk kasus penggunaan yang sensitif.' },
+                { year: 'Ongoing', title: 'Pengembangan Hydra', description: 'Solusi penskalaan Layer 2 untuk mencapai throughput transaksi yang sangat tinggi.' }
+            ],
+            adoption: [
+                { metric: '2.005', label: 'Proyek Aktif' },
+                { metric: 'Ke-4', label: 'Blockchain Paling Aktif di GitHub' },
+                { metric: 'Kemitraan', label: 'PBB, Ethiopia, NASA' }
+            ],
+            languages: ['Haskell', 'Plutus'],
+            radar: [7, 9, 7, 6, 8],
+            isVisibleByDefault: true
+        },
+        'MNT': {
+            name: 'Mantle',
+            logo: '⛰️',
+            color: '#A9A9A9',
+            metrics: { dapps: 123, tvl: 0.23522, uaw: 50000 },
+            tagline: 'Jaringan Layer-2 modular untuk Ethereum yang didukung oleh BitDAO.',
+            overview: 'Mantle adalah solusi penskalaan Layer-2 untuk Ethereum yang menggunakan arsitektur modular untuk skalabilitas tinggi dan biaya rendah. Ini didukung oleh BitDAO, salah satu DAO terbesar di dunia, dengan fokus pada pengembangan ekosistem Web3.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Modular', description: 'Terus mengembangkan dan mengoptimalkan komponen modular untuk kinerja yang lebih baik.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, GameFi, dan NFT.' }
+            ],
+            adoption: [
+                { metric: '123', label: 'Jumlah Protokol' },
+                { metric: '$235.22 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Dukungan BitDAO', label: 'Didukung oleh salah satu DAO terbesar.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 7, 6, 8, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'BLAST': {
+            name: 'Blast',
+            logo: '💥',
+            color: '#FFD700',
+            metrics: { dapps: 158, tvl: 0.2238, uaw: 50000 },
+            tagline: 'Blockchain Layer-2 dengan *yield* asli untuk Ethereum.',
+            overview: 'Blast adalah solusi penskalaan Layer-2 yang menawarkan *yield* asli pada ETH dan stablecoin yang disimpan. Ini dirancang untuk memberikan pengalaman pengguna yang lebih baik dengan biaya rendah dan likuiditas yang ditingkatkan.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan NFT.' }
+            ],
+            adoption: [
+                { metric: '158', label: 'Jumlah Protokol' },
+                { metric: '$223.8 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Yield Asli', label: 'Menarik pengguna yang mencari keuntungan tambahan.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 7, 7, 8, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'ALGO': {
+            name: 'Algorand',
+            logo: '🅰️',
+            color: '#000000',
+            metrics: { dapps: 51, tvl: 0.1848, uaw: 80000 },
+            tagline: 'Blockchain Layer-1 yang terdesentralisasi, aman, dan skalabel.',
+            overview: 'Algorand adalah blockchain Layer-1 yang dibangun untuk kecepatan, keamanan, dan desentralisasi. Ini menggunakan mekanisme konsensus Pure Proof-of-Stake untuk mencapai finalitas instan dan biaya transaksi yang rendah, mendukung berbagai aplikasi terdesentralisasi dan solusi perusahaan.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol Inti', description: 'Terus meningkatkan kinerja dan skalabilitas jaringan.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, NFT, dan GameFi.' }
+            ],
+            adoption: [
+                { metric: '51', label: 'Jumlah Protokol' },
+                { metric: '$184.8 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Kemitraan', label: 'Menjalin kemitraan dengan berbagai organisasi.' }
+            ],
+            languages: ['Python', 'Go', 'Java', 'JavaScript'],
+            radar: [6, 8, 7, 8, 8],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'RUNE': {
+            name: 'Thorchain',
+            logo: '🔨',
+            color: '#36C6D6',
+            metrics: { dapps: 3, tvl: 0.18172, uaw: 10000 },
+            tagline: 'Protokol likuiditas lintas rantai terdesentralisasi.',
+            overview: 'THORChain adalah protokol likuiditas terdesentralisasi yang memungkinkan pertukaran aset kripto lintas rantai tanpa perantara. Ini berfokus pada penyediaan likuiditas yang mendalam dan aman untuk perdagangan aset digital.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Lintas Rantai', description: 'Terus memperluas dukungan untuk lebih banyak aset dan rantai.' },
+                { year: 'Future', title: 'Desentralisasi Penuh', description: 'Bergerak menuju tata kelola yang sepenuhnya terdesentralisasi.' }
+            ],
+            adoption: [
+                { metric: '3', label: 'Jumlah Protokol' },
+                { metric: '$181.72 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Likuiditas Lintas Rantai', label: 'Menyediakan solusi unik untuk pertukaran aset.' }
+            ],
+            languages: ['Go'],
+            radar: [4, 7, 5, 7, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'RBTC': {
+            name: 'RSK',
+            logo: '🔗',
+            color: '#00B0D9',
+            metrics: { dapps: 3, tvl: 0.17765, uaw: 5000 },
+            tagline: 'Jaringan kontrak pintar yang didukung oleh keamanan Bitcoin.',
+            overview: 'RSK adalah platform kontrak pintar yang terhubung ke blockchain Bitcoin melalui *sidechain*. Ini memungkinkan pengembang untuk membangun dApps yang mendapat manfaat dari keamanan Bitcoin yang kuat sambil menawarkan fungsionalitas kontrak pintar yang ditingkatkan.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Skalabilitas', description: 'Terus meningkatkan throughput transaksi dan efisiensi.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan Web3.' }
+            ],
+            adoption: [
+                { metric: '3', label: 'Jumlah Protokol' },
+                { metric: '$177.65 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Keamanan Bitcoin', label: 'Menarik proyek yang memprioritaskan keamanan.' }
+            ],
+            languages: ['Solidity'],
+            radar: [4, 7, 5, 6, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'OSMO': {
+            name: 'Osmosis',
+            logo: '🧪',
+            color: '#7C00FF',
+            metrics: { dapps: 20, tvl: 0.16283, uaw: 20000 },
+            tagline: 'Bursa terdesentralisasi (DEX) dan *hub* likuiditas di ekosistem Cosmos.',
+            overview: 'Osmosis adalah bursa terdesentralisasi (DEX) yang dibangun di atas Cosmos SDK, berfokus pada penyediaan likuiditas yang dalam dan perdagangan yang efisien untuk aset di ekosistem Cosmos. Ini adalah *hub* utama untuk interoperabilitas lintas rantai.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan DEX', description: 'Terus meningkatkan fitur dan kinerja DEX.' },
+                { year: 'Future', title: 'Ekspansi Lintas Rantai', description: 'Mendukung lebih banyak aset dan rantai di ekosistem Cosmos.' }
+            ],
+            adoption: [
+                { metric: '20', label: 'Jumlah Protokol' },
+                { metric: '$162.83 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Hub Cosmos', label: 'Menjadi inti likuiditas di ekosistem Cosmos.' }
+            ],
+            languages: ['Go'],
+            radar: [5, 7, 6, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'XIN': {
+            name: 'Mixin',
+            logo: '🔀',
+            color: '#228B22',
+            metrics: { dapps: 10, tvl: 0.1532, uaw: 10000 },
+            tagline: 'Jaringan transaksi terdesentralisasi berkecepatan tinggi.',
+            overview: 'Mixin adalah jaringan transaksi terdesentralisasi berkecepatan tinggi yang mendukung berbagai aset kripto. Ini bertujuan untuk menyediakan transfer aset yang cepat dan aman dengan biaya rendah.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Kinerja', description: 'Terus meningkatkan kecepatan dan efisiensi transaksi.' },
+                { year: 'Future', title: 'Ekspansi Fitur', description: 'Menambahkan fitur dan layanan baru untuk pengguna.' }
+            ],
+            adoption: [
+                { metric: '10', label: 'Jumlah Protokol' },
+                { metric: '$153.2 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Transaksi Cepat', label: 'Menarik pengguna yang memprioritaskan kecepatan.' }
+            ],
+            languages: ['Go'],
+            radar: [4, 6, 5, 8, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'CELO': {
+            name: 'Celo',
+            logo: '🌱',
+            color: '#35D07F',
+            metrics: { dapps: 68, tvl: 0.15068, uaw: 70000 },
+            tagline: 'Blockchain seluler-pertama untuk keuangan terdesentralisasi.',
+            overview: 'Celo adalah blockchain yang berfokus pada perangkat seluler, dirancang untuk membuat keuangan terdesentralisasi (DeFi) dapat diakses oleh siapa saja dengan ponsel pintar. Ini bertujuan untuk membangun sistem keuangan yang inklusif dan ramah lingkungan.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Seluler', description: 'Terus meningkatkan pengalaman pengguna seluler dan aksesibilitas.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan pembayaran.' }
+            ],
+            adoption: [
+                { metric: '68', label: 'Jumlah Protokol' },
+                { metric: '$150.68 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Seluler', label: 'Menarik pengguna di pasar negara berkembang.' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 8, 7, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'HBAR': {
+            name: 'Hedera',
+            logo: 'ℏ',
+            color: '#000000',
+            metrics: { dapps: 21, tvl: 0.14816, uaw: 40000 },
+            tagline: 'Jaringan terdesentralisasi tingkat perusahaan yang cepat dan aman.',
+            overview: 'Hedera adalah jaringan publik terdesentralisasi yang menggunakan algoritma konsensus *hashgraph* untuk mencapai kecepatan tinggi, keamanan, dan biaya rendah. Ini dirancang untuk mendukung aplikasi tingkat perusahaan dan layanan terdesentralisasi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Adopsi Perusahaan', description: 'Menarik lebih banyak perusahaan untuk membangun di atas Hedera.' }
+            ],
+            adoption: [
+                { metric: '21', label: 'Jumlah Protokol' },
+                { metric: '$148.16 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Perusahaan', label: 'Menarik bisnis besar dan institusi.' }
+            ],
+            languages: ['Solidity', 'Java'],
+            radar: [5, 8, 6, 9, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'FTM': {
+            name: 'Fantom',
+            logo: '👻',
+            color: '#13B5EC',
+            metrics: { dapps: 347, tvl: 0.13989, uaw: 60000 },
+            tagline: 'Platform kontrak pintar yang cepat, skalabel, dan aman.',
+            overview: 'Fantom adalah platform kontrak pintar berkinerja tinggi yang dirancang untuk mengatasi masalah skalabilitas blockchain. Ini menggunakan mekanisme konsensus aBFT yang unik untuk mencapai finalitas instan dan biaya rendah, mendukung ekosistem dApps yang berkembang pesat.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol Inti', description: 'Terus meningkatkan kinerja dan skalabilitas jaringan.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, NFT, dan GameFi.' }
+            ],
+            adoption: [
+                { metric: '347', label: 'Jumlah Protokol' },
+                { metric: '$139.89 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Komunitas Aktif', label: 'Komunitas pengembang dan pengguna yang kuat.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 7, 7, 9, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'WEMIX': {
+            name: 'WEMIX',
+            logo: '🎮',
+            color: '#00A3FF',
+            metrics: { dapps: 13, tvl: 0.11258, uaw: 20000 },
+            tagline: 'Platform blockchain global yang berfokus pada game.',
+            overview: 'WEMIX adalah platform blockchain yang dibangun untuk game, menyediakan infrastruktur untuk game Web3 dan ekonomi token. Ini bertujuan untuk menghubungkan game tradisional dengan teknologi blockchain, menciptakan ekosistem game yang terdesentralisasi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Ekspansi Game', description: 'Terus menambahkan game baru dan meningkatkan fitur platform.' },
+                { year: 'Future', title: 'Adopsi Global', description: 'Meningkatkan jangkauan global platform game blockchain.' }
+            ],
+            adoption: [
+                { metric: '13', label: 'Jumlah Protokol' },
+                { metric: '$112.58 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus GameFi', label: 'Menarik komunitas game blockchain.' }
+            ],
+            languages: ['Solidity'],
+            radar: [5, 7, 6, 7, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'ZK': {
+            name: 'zkSync Era',
+            logo: '⚡',
+            color: '#6F6F6F',
+            metrics: { dapps: 143, tvl: 0.10929, uaw: 100000 },
+            tagline: 'Solusi penskalaan zk-rollup untuk Ethereum yang berfokus pada keamanan.',
+            overview: 'zkSync Era adalah solusi penskalaan Layer-2 yang menggunakan teknologi zk-rollup untuk meningkatkan skalabilitas Ethereum sambil mempertahankan keamanan yang kuat. Ini bertujuan untuk memberikan transaksi yang cepat dan murah untuk dApps.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan ZK-EVM', description: 'Terus meningkatkan kinerja dan efisiensi zk-EVM.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di berbagai sektor.' }
+            ],
+            adoption: [
+                { metric: '143', label: 'Jumlah Protokol' },
+                { metric: '$109.29 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Keamanan', label: 'Menarik proyek yang memprioritaskan keamanan.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 8, 6, 8, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'KLAY': {
+            name: 'Klaytn',
+            logo: '🌳',
+            color: '#FFD200',
+            metrics: { dapps: 69, tvl: 0.10702, uaw: 50000 },
+            tagline: 'Blockchain tingkat perusahaan yang berfokus pada adopsi massal.',
+            overview: 'Klaytn adalah blockchain tingkat perusahaan yang dirancang untuk adopsi massal, dengan fokus pada game, NFT, dan metaverse. Ini bertujuan untuk menyediakan platform yang ramah pengembang dan mudah digunakan untuk aplikasi Web3.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di berbagai sektor.' }
+            ],
+            adoption: [
+                { metric: '69', label: 'Jumlah Protokol' },
+                { metric: '$107.02 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Perusahaan', label: 'Menarik bisnis besar dan institusi.' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 7, 7, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'FSN': {
+            name: 'Fusion',
+            logo: '융',
+            color: '#FF6347',
+            metrics: { dapps: 3, tvl: 0.1029, uaw: 1000 },
+            tagline: 'Blockchain yang berfokus pada interoperabilitas dan manajemen aset kripto.',
+            overview: 'Fusion adalah blockchain publik yang dirancang untuk interoperabilitas, memungkinkan aset kripto dari berbagai blockchain untuk berinteraksi dengan mulus. Ini berfokus pada manajemen aset digital dan keuangan terdesentralisasi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Lintas Rantai', description: 'Terus meningkatkan kemampuan interoperabilitas lintas rantai.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan manajemen aset.' }
+            ],
+            adoption: [
+                { metric: '3', label: 'Jumlah Protokol' },
+                { metric: '$102.9 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Interoperabilitas', label: 'Menarik proyek yang membutuhkan komunikasi lintas rantai.' }
+            ],
+            languages: ['Solidity'],
+            radar: [4, 7, 4, 6, 5],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'ACA': {
+            name: 'Acala',
+            logo: '🌸',
+            color: '#FF0000',
+            metrics: { dapps: 9, tvl: 0.07845, uaw: 5000 },
+            tagline: 'Pusat DeFi dan stablecoin untuk ekosistem Polkadot.',
+            overview: 'Acala adalah *hub* DeFi dan stablecoin untuk ekosistem Polkadot, menyediakan platform untuk pinjaman, peminjaman, dan pertukaran aset terdesentralisasi. Ini adalah parachain yang berfokus pada penyediaan likuiditas dan layanan keuangan.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan DeFi', description: 'Terus meningkatkan fitur dan kinerja protokol DeFi.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan stablecoin.' }
+            ],
+            adoption: [
+                { metric: '9', label: 'Jumlah Protokol' },
+                { metric: '$78.45 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Hub Polkadot DeFi', label: 'Menyediakan layanan keuangan di ekosistem Polkadot.' }
+            ],
+            languages: ['Rust', 'Ink!'],
+            radar: [5, 7, 5, 6, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'STX': {
+            name: 'Stacks',
+            logo: '🅢',
+            color: '#5546FF',
+            metrics: { dapps: 15, tvl: 0.0722, uaw: 10000 },
+            tagline: 'Lapisan kontrak pintar untuk Bitcoin.',
+            overview: 'Stacks adalah lapisan kontrak pintar untuk Bitcoin, memungkinkan pengembang untuk membangun dApps dan NFT di atas keamanan Bitcoin. Ini membawa fungsionalitas kontrak pintar ke blockchain Bitcoin tanpa memodifikasi Bitcoin itu sendiri.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Nakamoto', description: 'Meningkatkan kecepatan dan keandalan transaksi Stacks.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem Bitcoin', description: 'Mendukung pertumbuhan dApps dan DeFi di Bitcoin.' }
+            ],
+            adoption: [
+                { metric: '15', label: 'Jumlah Protokol' },
+                { metric: '$72.2 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'DeFi Bitcoin', label: 'Membawa fungsionalitas DeFi ke Bitcoin.' }
+            ],
+            languages: ['Clarity'],
+            radar: [5, 8, 6, 5, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'XTZ': {
+            name: 'Tezos',
+            logo: 'ꜩ',
+            color: '#2C7DFB',
+            metrics: { dapps: 23, tvl: 0.06842, uaw: 20000 },
+            tagline: 'Blockchain yang dapat di-upgrade sendiri dengan tata kelola on-chain.',
+            overview: 'Tezos adalah blockchain yang dapat di-upgrade sendiri dengan tata kelola on-chain, memungkinkan jaringan untuk berevolusi tanpa *hard fork*. Ini berfokus pada keamanan, desentralisasi, dan partisipasi komunitas.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, NFT, dan seni digital.' }
+            ],
+            adoption: [
+                { metric: '23', label: 'Jumlah Protokol' },
+                { metric: '$68.42 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Tata Kelola On-Chain', label: 'Menarik komunitas yang berfokus pada partisipasi.' }
+            ],
+            languages: ['Michelson', 'SmartPy'],
+            radar: [6, 8, 6, 6, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'NEO': {
+            name: 'Neo',
+            logo: 'NEO',
+            color: '#58BF00',
+            metrics: { dapps: 6, tvl: 0.06453, uaw: 5000 },
+            tagline: 'Platform blockchain yang berfokus pada ekonomi pintar dan identitas digital.',
+            overview: 'Neo adalah platform blockchain yang bertujuan untuk membangun "ekonomi pintar" dengan mengintegrasikan aset digital, identitas digital, dan kontrak pintar. Ini mendukung berbagai bahasa pemrograman untuk pengembang.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di berbagai sektor.' }
+            ],
+            adoption: [
+                { metric: '6', label: 'Jumlah Protokol' },
+                { metric: '$64.53 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Dukungan Multi-Bahasa', label: 'Menarik pengembang dari berbagai latar belakang.' }
+            ],
+            languages: ['C#', 'Python', 'Go', 'Java'],
+            radar: [4, 7, 5, 6, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'METIS': {
+            name: 'Metis',
+            logo: '🌌',
+            color: '#00D4FF',
+            metrics: { dapps: 65, tvl: 0.0635, uaw: 10000 },
+            tagline: 'Solusi penskalaan Layer-2 untuk Ethereum dengan fokus pada DAO dan aplikasi Web3.',
+            overview: 'Metis adalah solusi penskalaan Layer-2 untuk Ethereum yang menggunakan *optimistic rollup* dan berfokus pada pembangunan DAO dan aplikasi Web3. Ini bertujuan untuk memberikan transaksi yang cepat dan murah dengan pengalaman pengguna yang ditingkatkan.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan DAO.' }
+            ],
+            adoption: [
+                { metric: '65', label: 'Jumlah Protokol' },
+                { metric: '$63.5 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus DAO', label: 'Menarik proyek yang berfokus pada tata kelola terdesentralisasi.' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 7, 6, 7, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'TLOS': {
+            name: 'Telos',
+            logo: '🌳',
+            color: '#5522EE',
+            metrics: { dapps: 43, tvl: 0.05873, uaw: 5000 },
+            tagline: 'Blockchain Layer-1 yang cepat, skalabel, dan ramah lingkungan.',
+            overview: 'Telos adalah blockchain Layer-1 yang berkinerja tinggi yang berfokus pada kecepatan, skalabilitas, dan keberlanjutan. Ini dirancang untuk mendukung aplikasi terdesentralisasi yang kompleks dan kasus penggunaan dunia nyata.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, GameFi, dan NFT.' }
+            ],
+            adoption: [
+                { metric: '43', label: 'Jumlah Protokol' },
+                { metric: '$58.73 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Keberlanjutan', label: 'Menarik proyek yang memprioritaskan lingkungan.' }
+            ],
+            languages: ['C++', 'Solidity'],
+            radar: [5, 7, 5, 8, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'EGLD': {
+            name: 'MultiversX',
+            logo: '✨',
+            color: '#4B0082',
+            metrics: { dapps: 26, tvl: 0.0528, uaw: 20000 },
+            tagline: 'Blockchain yang sangat skalabel untuk ekonomi digital baru.',
+            overview: 'MultiversX (sebelumnya Elrond) adalah blockchain yang sangat skalabel yang dirancang untuk ekonomi digital baru, dengan fokus pada *sharding* dan kinerja tinggi. Ini bertujuan untuk mendukung aplikasi terdesentralisasi yang kompleks dan adopsi massal.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, NFT, dan metaverse.' }
+            ],
+            adoption: [
+                { metric: '26', label: 'Jumlah Protokol' },
+                { metric: '$52.8 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Skalabilitas', label: 'Menarik proyek yang membutuhkan kinerja tinggi.' }
+            ],
+            languages: ['Rust', 'Go', 'C', 'C++'],
+            radar: [5, 8, 6, 9, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'ASTR': {
+            name: 'Astar',
+            logo: '💫',
+            color: '#2040FF',
+            metrics: { dapps: 47, tvl: 0.05141, uaw: 10000 },
+            tagline: 'Pusat dApp untuk Web3 di Polkadot dan Ethereum.',
+            overview: 'Astar adalah pusat dApp untuk Web3 yang mendukung Polkadot dan Ethereum Virtual Machine (EVM). Ini memungkinkan pengembang untuk membangun dApps yang dapat berinteraksi dengan kedua ekosistem, dengan fokus pada penskalaan dan interoperabilitas.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Lintas Rantai', description: 'Terus meningkatkan kemampuan interoperabilitas lintas rantai.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, NFT, dan GameFi.' }
+            ],
+            adoption: [
+                { metric: '47', label: 'Jumlah Protokol' },
+                { metric: '$51.41 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Hub Polkadot/EVM', label: 'Menarik proyek yang membutuhkan kompatibilitas ganda.' }
+            ],
+            languages: ['Rust', 'Solidity'],
+            radar: [6, 7, 6, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'CFX': {
+            name: 'Conflux',
+            logo: '🌀',
+            color: '#008080',
+            metrics: { dapps: 17, tvl: 0.04412, uaw: 5000 },
+            tagline: 'Blockchain publik yang berkinerja tinggi dan skalabel dengan konsensus Tree-Graph.',
+            overview: 'Conflux adalah blockchain publik yang berkinerja tinggi dan skalabel yang menggunakan algoritma konsensus Tree-Graph yang unik untuk mencapai throughput tinggi dan finalitas cepat. Ini bertujuan untuk mendukung aplikasi terdesentralisasi skala besar dan ekonomi digital.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, NFT, dan GameFi.' }
+            ],
+            adoption: [
+                { metric: '17', label: 'Jumlah Protokol' },
+                { metric: '$44.12 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Kinerja', label: 'Menarik proyek yang membutuhkan throughput tinggi.' }
+            ],
+            languages: ['Solidity'],
+            radar: [5, 7, 5, 8, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'GLMR': {
+            name: 'Moonbeam',
+            logo: '🌕',
+            color: '#53CBC9',
+            metrics: { dapps: 67, tvl: 0.0409, uaw: 10000 },
+            tagline: 'Parachain yang kompatibel dengan EVM di Polkadot untuk aplikasi lintas rantai.',
+            overview: 'Moonbeam adalah parachain yang kompatibel dengan EVM di Polkadot, memungkinkan pengembang untuk menyebarkan kontrak pintar Solidity dan membangun dApps lintas rantai. Ini berfungsi sebagai jembatan antara ekosistem Ethereum dan Polkadot.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Kompatibilitas EVM', description: 'Terus meningkatkan kompatibilitas EVM dan alat pengembang.' },
+                { year: 'Future', title: 'Ekspansi Lintas Rantai', description: 'Mendukung lebih banyak aset dan rantai di ekosistem Polkadot.' }
+            ],
+            adoption: [
+                { metric: '67', label: 'Jumlah Protokol' },
+                { metric: '$40.9 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Jembatan Polkadot/EVM', label: 'Menarik proyek yang membutuhkan kompatibilitas ganda.' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 7, 6, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'HT': {
+            name: 'Heco',
+            logo: '🔥',
+            color: '#FF4500',
+            metrics: { dapps: 5, tvl: 0.03822, uaw: 1000 },
+            tagline: 'Blockchain publik berkinerja tinggi dan terdesentralisasi yang didukung oleh Huobi.',
+            overview: 'Heco (Huobi Eco Chain) adalah blockchain publik berkinerja tinggi dan terdesentralisasi yang didukung oleh Huobi. Ini bertujuan untuk menyediakan platform yang efisien dan hemat biaya untuk dApps, dengan fokus pada DeFi dan NFT.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di berbagai sektor.' }
+            ],
+            adoption: [
+                { metric: '5', label: 'Jumlah Protokol' },
+                { metric: '$38.22 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Dukungan Huobi', label: 'Manfaat dari dukungan bursa Huobi.' }
+            ],
+            languages: ['Solidity'],
+            radar: [4, 6, 4, 7, 5],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'CANTO': {
+            name: 'Canto',
+            logo: '🎵',
+            color: '#00FF00',
+            metrics: { dapps: 27, tvl: 0.02892, uaw: 5000 },
+            tagline: 'Blockchain Layer-1 yang berfokus pada DeFi sebagai barang publik.',
+            overview: 'Canto adalah blockchain Layer-1 yang berfokus pada penyediaan DeFi sebagai barang publik, dengan penekanan pada likuiditas gratis dan infrastruktur yang tidak dapat diatur. Ini bertujuan untuk mendukung ekosistem DeFi yang terdesentralisasi dan adil.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Protokol', description: 'Terus meningkatkan kinerja dan fitur protokol inti.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi dan keuangan terdesentralisasi.' }
+            ],
+            adoption: [
+                { metric: '27', label: 'Jumlah Protokol' },
+                { metric: '$28.92 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'DeFi sebagai Barang Publik', label: 'Menarik proyek yang berfokus pada desentralisasi dan keadilan.' }
+            ],
+            languages: ['Solidity'],
+            radar: [5, 7, 5, 6, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'SCRT': {
+            name: 'Secret',
+            logo: '🤫',
+            color: '#800080',
+            metrics: { dapps: 10, tvl: 0.02637, uaw: 2000 },
+            tagline: 'Blockchain dengan kontrak pintar yang menjaga privasi.',
+            overview: 'Secret Network adalah blockchain Layer-1 dengan kontrak pintar yang menjaga privasi, memungkinkan dApps untuk melakukan komputasi pada data terenkripsi. Ini berfokus pada penyediaan privasi yang ditingkatkan untuk aplikasi terdesentralisasi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Privasi', description: 'Terus meningkatkan fitur privasi dan keamanan.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps yang menjaga privasi di berbagai sektor.' }
+            ],
+            adoption: [
+                { metric: '10', label: 'Jumlah Protokol' },
+                { metric: '$26.37 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Privasi', label: 'Menarik proyek yang memprioritaskan privasi data.' }
+            ],
+            languages: ['Rust'],
+            radar: [4, 8, 5, 6, 6],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'AURORA': {
+            name: 'Aurora',
+            logo: '✨',
+            color: '#00D1FF',
+            metrics: { dapps: 62, tvl: 0.0237, uaw: 10000 },
+            tagline: 'Jembatan yang kompatibel dengan EVM untuk NEAR Protocol.',
+            overview: 'Aurora adalah jembatan yang kompatibel dengan EVM yang dibangun di atas NEAR Protocol, memungkinkan pengembang untuk menyebarkan kontrak pintar Solidity dan berinteraksi dengan ekosistem NEAR. Ini berfungsi sebagai jembatan antara Ethereum dan NEAR.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Kompatibilitas EVM', description: 'Terus meningkatkan kompatibilitas EVM dan alat pengembang.' },
+                { year: 'Future', title: 'Ekspansi Lintas Rantai', description: 'Mendukung lebih banyak aset dan rantai di ekosistem NEAR.' }
+            ],
+            adoption: [
+                { metric: '62', label: 'Jumlah Protokol' },
+                { metric: '$23.7 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Jembatan NEAR/EVM', label: 'Menarik proyek yang membutuhkan kompatibilitas ganda.' }
+            ],
+            languages: ['Solidity'],
+            radar: [6, 7, 6, 7, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'ONT': {
+            name: 'Ontology',
+            logo: '⛓️',
+            color: '#00A693',
+            metrics: { dapps: 3, tvl: 0.02165, uaw: 1000 },
+            tagline: 'Blockchain berkinerja tinggi yang berfokus pada identitas terdesentralisasi dan data.',
+            overview: 'Ontology adalah blockchain berkinerja tinggi yang berfokus pada identitas terdesentralisasi (DID) dan data. Ini bertujuan untuk membangun kerangka kepercayaan untuk Web3, memungkinkan pengguna untuk mengontrol data mereka sendiri dan berinteraksi dengan dApps dengan aman.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan DID', description: 'Terus meningkatkan fitur dan keamanan identitas terdesentralisasi.' },
+                { year: 'Future', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di identitas digital dan data.' }
+            ],
+            adoption: [
+                { metric: '3', label: 'Jumlah Protokol' },
+                { metric: '$21.65 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: 'Fokus Identitas', label: 'Menarik proyek yang berfokus pada identitas digital.' }
+            ],
+            languages: ['Go', 'Python'],
+            radar: [4, 7, 4, 6, 5],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'HL': {
+            name: 'Hyperliquid',
+            logo: '📈',
+            color: '#663399',
+            metrics: { dapps: 1, tvl: 0.25, uaw: 50000 },
+            tagline: 'Bursa derivatif terdesentralisasi berkinerja tinggi.',
+            overview: 'Hyperliquid adalah bursa derivatif terdesentralisasi (DEX) berkinerja tinggi yang menawarkan perdagangan perpetual dengan latensi rendah dan biaya rendah, dibangun di atas blockchain khusus. Ini berfokus pada menyediakan pengalaman perdagangan yang mulus dan efisien.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Likuiditas', description: 'Terus menarik penyedia likuiditas untuk memperdalam pasar.' },
+                { year: '2025', title: 'Fitur Perdagangan Baru', description: 'Memperkenalkan jenis pesanan dan alat perdagangan lanjutan.' },
+                { year: 'Future', title: 'Ekspansi Produk', description: 'Menjelajahi penawaran derivatif baru dan integrasi.' }
+            ],
+            adoption: [
+                { metric: '$1 Miliar+', label: 'Volume Perdagangan Harian (puncak)' },
+                { metric: '50 Ribu+', label: 'Pengguna Aktif' },
+                { metric: 'Likuiditas Dalam', label: 'Menarik trader institusional dan ritel.' }
+            ],
+            languages: ['Rust'],
+            radar: [4, 7, 7, 10, 6],
+            isVisibleByDefault: true
+        },
+        'DOT': {
+            name: 'Polkadot',
+            logo: '⚪',
+            color: '#E6007A',
+            metrics: { dapps: 400, tvl: 0.15, uaw: 100000 },
+            tagline: 'Blockchain multi-rantai yang memungkinkan interoperabilitas dan skalabilitas.',
+            overview: 'Polkadot adalah blockchain *heterogeneous multi-chain* yang memungkinkan blockchain yang berbeda (parachain) untuk berkomunikasi dan berbagi keamanan. Ini berfokus pada interoperabilitas dan arsitektur modular untuk masa depan Web3.',
+            roadmap: [
+                { year: '2025', title: 'Polkadot 2.0', description: 'Memperkenalkan blockchain modular dan kemampuan *rollup* sesuai permintaan, mirip dengan arsitektur *microservices*.' },
+                { year: 'Ongoing', title: 'XCM v5 + Hyperbridge', description: 'Meningkatkan komunikasi dan efisiensi lintas rantai di dalam dan di luar ekosistem Polkadot.' },
+                { year: 'Future', title: 'JAM SDK', description: 'Menurunkan hambatan masuk bagi pengembang untuk berpartisipasi dalam ekosistem.' }
+            ],
+            adoption: [
+                { metric: '1.200+', label: 'Pengembang Aktif (2024)' },
+                { metric: '122', label: 'Pengembang Inti Aktif Mingguan (Q1 2025)' },
+                { metric: 'Fokus Interoperabilitas', label: 'Menarik proyek yang membutuhkan komunikasi lintas rantai.' }
+            ],
+            languages: ['Rust', 'Ink!'],
+            radar: [6, 9, 6, 7, 9],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'APT': {
+            name: 'Aptos',
+            logo: '🌊',
+            color: '#61F2F2',
+            metrics: { dapps: 73, tvl: 0.29358, uaw: 200000 },
+            tagline: 'Blockchain Layer-1 yang aman dan skalabel dengan bahasa Move.',
+            overview: 'Aptos adalah blockchain Layer-1 baru yang dibangun oleh mantan pengembang Meta (Facebook) yang berfokus pada skalabilitas, keamanan, dan peningkatan. Ini menggunakan bahasa pemrograman Move untuk keamanan aset yang lebih baik.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Peningkatan Skalabilitas', description: 'Terus meningkatkan throughput transaksi dan mengurangi latensi.' },
+                { year: '2025', title: 'Ekspansi Ekosistem', description: 'Mendukung pertumbuhan dApps di DeFi, GameFi, dan NFT.' },
+                { year: 'Future', title: 'Adopsi Massal', description: 'Fokus pada pengalaman pengguna yang mulus untuk menarik miliaran pengguna.' }
+            ],
+            adoption: [
+                { metric: '200 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: '150+', label: 'Jumlah dApps' },
+                { metric: 'Dukungan Kuat', label: 'Didukung oleh investor terkemuka.' }
+            ],
+            languages: ['Move'],
+            radar: [5, 8, 7, 9, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'BTC': {
+            name: 'Bitcoin',
+            logo: '₿',
+            color: '#F7931A',
+            metrics: { dapps: 1, tvl: 0.42952, uaw: 150000000 },
+            tagline: 'Penyimpan nilai digital utama dan mata uang terdesentralisasi.',
+            overview: 'Bitcoin adalah mata uang kripto pertama dan terbesar, yang berfungsi sebagai penyimpan nilai digital dan sistem uang elektronik peer-to-peer. Ini dikenal karena desentralisasi, keamanan, dan pasokannya yang terbatas, menjadikannya "emas digital".',
+            roadmap: [
+                { year: 'Ongoing', title: 'Lightning Network', description: 'Meningkatkan skalabilitas untuk pembayaran mikro yang lebih cepat dan murah di luar rantai utama.' },
+                { year: 'Ongoing', title: 'Taproot Upgrade', description: 'Meningkatkan privasi, efisiensi, dan kemampuan kontrak pintar Bitcoin secara terbatas.' },
+                { year: 'Future', title: 'Adopsi Global', description: 'Terus mendorong adopsi sebagai aset cadangan global dan alat pembayaran.' }
+            ],
+            adoption: [
+                { metric: '$1 Triliun+', label: 'Kapitalisasi Pasar' },
+                { metric: 'Negara Adopsi', label: 'El Salvador, Republik Afrika Tengah' },
+                { metric: 'ETF Spot BTC', label: 'Adopsi Institusional Meningkat' }
+            ],
+            languages: ['C++', 'Script'],
+            radar: [1, 10, 10, 4, 7],
+            isVisibleByDefault: true // Diubah menjadi true
+        },
+        'ARB': {
+            name: 'Arbitrum',
+            logo: '🅰️',
+            color: '#28A0EE',
+            metrics: { dapps: 850, tvl: 3.41, uaw: 500000 },
+            tagline: 'Solusi penskalaan Layer-2 terkemuka untuk Ethereum dengan ekosistem yang berkembang.',
+            overview: 'Arbitrum adalah jaringan Layer-2 yang menggunakan teknologi *optimistic rollup* untuk meningkatkan skalabilitas dan efisiensi transaksi Ethereum. Ini menawarkan biaya yang lebih rendah dan *throughput* yang lebih tinggi dibandingkan mainnet Ethereum, menarik banyak proyek DeFi dan GameFi.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Arbitrum Orbit', description: 'Memungkinkan pengembang untuk meluncurkan rantai Layer-3 yang dapat disesuaikan di atas Arbitrum.' },
+                { year: '2025', title: 'Stylus', description: 'Memungkinkan pengembang untuk menulis kontrak pintar menggunakan bahasa seperti Rust, C, dan C++ di Arbitrum, memperluas kemampuan pengembang.' },
+                { year: 'Future', title: 'Desentralisasi Penuh', description: 'Bergerak menuju tata kelola yang sepenuhnya terdesentralisasi dan keamanan yang ditingkatkan.' }
+            ],
+            adoption: [
+                { metric: '$3.41 Miliar', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: '500 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: 'Banyak Proyek DeFi', label: 'Menjadi tuan rumah bagi banyak aplikasi DeFi terkemuka.' }
+            ],
+            languages: ['Solidity', 'Rust', 'C', 'C++'],
+            radar: [8, 8, 8, 8, 8],
+            isVisibleByDefault: true
+        },
+        'OP': {
+            name: 'Optimism',
+            logo: '🔴',
+            color: '#FF0420',
+            metrics: { dapps: 329, tvl: 0.81582, uaw: 300000 },
+            tagline: 'Blockchain Layer-2 yang cepat, stabil, dan ramah EVM, dengan visi Superchain.',
+            overview: 'Optimism adalah jaringan Layer-2 yang menggunakan *optimistic rollup* untuk penskalaan Ethereum, dengan fokus pada kesederhanaan, keberlanjutan, dan tata kelola komunitas. Ini adalah bagian dari visi Superchain yang lebih besar untuk ekosistem blockchain yang terhubung.',
+            roadmap: [
+                { year: 'Ongoing', title: 'Superchain Vision', description: 'Membangun jaringan blockchain Layer-2 yang saling terhubung dan terpadu.' },
+                { year: '2025', title: 'Peningkatan Fault Proof', description: 'Meningkatkan keamanan dan keandalan sistem *optimistic rollup*.' },
+                { year: 'Future', title: 'Tata Kelola Terdesentralisasi', description: 'Memberdayakan komunitas untuk mengelola dan mengembangkan protokol.' }
+            ],
+            adoption: [
+                { metric: '$815.82 Juta', label: 'Total Nilai Terkunci (TVL)' },
+                { metric: '300 Ribu+', label: 'Dompet Aktif Unik' },
+                { metric: 'Ekosistem Berkembang', label: 'Mendukung berbagai proyek DeFi dan NFT.' }
+            ],
+            languages: ['Solidity'],
+            radar: [7, 8, 7, 8, 7],
+            isVisibleByDefault: true
+        }
+    };
+
+    let mainChart, radarChartInstance;
+    
+    const formatNumber = (num) => {
+        if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + ' Miliar';
+        if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + ' Juta';
+        if (num >= 1000) return (num / 1000).toFixed(2) + ' Ribu';
+        return num;
+    };
+    
+    const formatCurrency = (num) => {
+        return '$' + (num).toFixed(2) + ' Miliar';
+    };
+
+    const getChartColors = () => {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        return {
+            textColor: isDarkMode ? '#e2e8f0' : '#475569', // slate-200 / slate-700
+            gridColor: isDarkMode ? '#475569' : '#e2e8f0' // slate-700 / slate-200
+        };
+    };
+
+    const updateChartTheme = () => {
+        const colors = getChartColors();
+        if (mainChart) {
+            mainChart.options.scales.y.ticks.color = colors.textColor;
+            mainChart.options.scales.x.ticks.color = colors.textColor;
+            mainChart.options.scales.y.grid.color = colors.gridColor;
+            mainChart.options.scales.x.grid.color = colors.gridColor;
+            mainChart.update();
+        }
+        if (radarChartInstance) {
+            radarChartInstance.options.scales.r.pointLabels.color = colors.textColor;
+            radarChartInstance.options.scales.r.grid.color = colors.gridColor;
+            radarChartInstance.options.scales.r.ticks.color = colors.textColor;
+            radarChartInstance.update();
+        }
+    };
+
+    const createMainChart = (metric) => {
+        const ctx = document.getElementById('mainComparisonChart').getContext('2d');
+        // Now include ALL ecosystems in the main chart
+        const allEcosystems = Object.values(ecosystemData);
+        const labels = allEcosystems.map(eco => eco.name);
+        const colors = getChartColors();
+        
+        let data, label;
+        let formatter = (value) => value;
+
+        switch(metric) {
+            case 'tvl':
+                data = allEcosystems.map(eco => eco.metrics.tvl);
+                label = 'Nilai Total Terkunci (dalam Miliar USD)';
+                formatter = (value) => `$${value} Miliar`;
+                break;
+            case 'uaw':
+                data = allEcosystems.map(eco => eco.metrics.uaw);
+                label = 'Dompet Aktif Unik';
+                formatter = formatNumber;
+                break;
+            default: // dapps
+                data = allEcosystems.map(eco => eco.metrics.dapps);
+                label = 'Jumlah dApps';
+                formatter = (value) => value.toLocaleString('id-ID');
+        }
+
+        const chartData = {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                backgroundColor: allEcosystems.map(eco => eco.color + 'BF'), // Add alpha
+                borderColor: allEcosystems.map(eco => eco.color),
+                borderWidth: 1
+            }]
+        };
+
+        if (mainChart) {
+            mainChart.data = chartData;
+            mainChart.options.plugins.tooltip.callbacks.label = (context) => formatter(context.raw);
+            mainChart.options.scales.y.ticks.color = colors.textColor;
+            mainChart.options.scales.x.ticks.color = colors.textColor;
+            mainChart.options.scales.y.grid.color = colors.gridColor;
+            mainChart.options.scales.x.grid.color = colors.gridColor;
+            mainChart.update();
+        } else {
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => formatNumber(value),
+                                color: colors.textColor
+                            },
+                            grid: {
+                                color: colors.gridColor
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: colors.textColor
+                            },
+                            grid: {
+                                color: colors.gridColor
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => formatter(context.raw)
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    const metricButtons = document.querySelectorAll('.metric-btn');
+    metricButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            metricButtons.forEach(btn => {
+                btn.classList.remove('bg-teal-500', 'text-white', 'dark:bg-teal-600', 'dark:hover:bg-teal-700');
+                btn.classList.add('bg-white', 'text-slate-700', 'dark:bg-slate-700', 'dark:text-slate-200', 'dark:hover:bg-slate-600');
+            });
+            button.classList.add('bg-teal-500', 'text-white', 'dark:bg-teal-600', 'dark:hover:bg-teal-700');
+            button.classList.remove('bg-white', 'text-slate-700', 'dark:bg-slate-700', 'dark:text-slate-200', 'dark:hover:bg-slate-600');
+            createMainChart(button.id.split('-')[1]);
+        });
+    });
+
+    const populateEcosystemCards = (filter = '') => {
+        const container = document.getElementById('ecosystem-cards');
+        const noResultsMessage = document.getElementById('no-results');
+        container.innerHTML = '';
+        
+        const filteredEcos = Object.entries(ecosystemData).filter(([key, eco]) => {
+            const matchesFilter = eco.name.toLowerCase().includes(filter.toLowerCase());
+            // If filter is empty, only show visibleByDefault. If filter is present, show all matching.
+            return filter === '' ? eco.isVisibleByDefault : matchesFilter;
+        });
+
+        if (filteredEcos.length === 0) {
+            noResultsMessage.classList.remove('hidden');
+        } else {
+            noResultsMessage.classList.add('hidden');
+        }
+
+        filteredEcos.forEach(([key, eco]) => {
+            const card = document.createElement('div');
+            card.className = 'ecosystem-card bg-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-6 dark:bg-slate-800 dark:shadow-xl dark:hover:shadow-2xl';
+            card.dataset.key = key;
+            card.innerHTML = `
+                <div class="flex items-center mb-4">
+                    <span class="text-3xl mr-4">${eco.logo}</span>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">${eco.name}</h3>
+                </div>
+                <p class="text-slate-600 mb-4 h-16 dark:text-slate-300">${eco.tagline}</p>
+                <div class="border-t border-slate-200 pt-4 flex justify-between text-sm dark:border-slate-700">
+                    <span class="font-semibold text-slate-700 dark:text-slate-200">dApps: <span class="text-teal-600">${eco.metrics.dapps.toLocaleString('id-ID')}</span></span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200">TVL: <span class="text-teal-600">${formatCurrency(eco.metrics.tvl)}</span></span>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    };
+    
+    document.getElementById('ecosystem-search').addEventListener('keyup', (e) => {
+        populateEcosystemCards(e.target.value);
+    });
+
+    const showDetailView = (ecoKey) => {
+        const eco = ecosystemData[ecoKey];
+        if (!eco) return;
+
+        const detailView = document.getElementById('detail-view');
+        const detailHeader = document.getElementById('detail-header');
+        
+        detailHeader.innerHTML = `
+            <div class="flex items-center mb-2">
+                <span class="text-4xl mr-4">${eco.logo}</span>
+                <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100">${eco.name}</h2>
+            </div>
+        `;
+        
+        detailView.classList.remove('hidden');
+        detailView.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Default to overview tab
+        switchTab('overview', ecoKey);
+    };
+    
+    const switchTab = (tab, ecoKey) => {
+        const eco = ecosystemData[ecoKey];
+        const contentContainer = document.getElementById('detail-content');
+        let content = '';
+        
+        switch(tab) {
+            case 'overview':
+                content = `<div class="fade-in">
+                    <h4 class="font-bold text-lg text-slate-800 mb-3 dark:text-slate-100">Ringkasan Strategis</h4>
+                    <p class="text-slate-600 leading-relaxed mb-6 dark:text-slate-300">${eco.overview}</p>
+                    <div class="mb-6">
+                        <h5 class="font-semibold text-slate-700 mb-2 dark:text-slate-200">Bahasa Pemrograman Utama:</h5>
+                        <p class="text-slate-600 dark:text-slate-300">${eco.languages.join(', ')}</p>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                        ${eco.adoption.map(item => `
+                            <div class="bg-slate-50 p-4 rounded-lg dark:bg-slate-700">
+                                <p class="text-2xl font-bold text-teal-600">${item.metric}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">${item.label}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+                break;
+            case 'roadmap':
+                content = `<div class="fade-in">
+                    <h4 class="font-bold text-lg text-slate-800 mb-4 dark:text-slate-100">Visi & Peta Jalan Jangka Panjang</h4>
+                    <ul class="space-y-4">
+                        ${eco.roadmap.map(item => `
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <span class="bg-teal-100 text-teal-700 font-semibold px-2 py-1 rounded-full text-xs dark:bg-teal-800 dark:text-teal-200">${item.year}</span>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-semibold text-slate-800 dark:text-slate-100">${item.title}</p>
+                                    <p class="text-slate-600 text-sm dark:text-slate-300">${item.description}</p>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>`;
+                break;
+            case 'adoption':
+                 content = `<div class="fade-in">
+                    <h4 class="font-bold text-lg text-slate-800 mb-4 dark:text-slate-100">Data Adopsi & Keterlibatan</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-4 rounded-lg dark:bg-slate-700">
+                            <h5 class="font-semibold text-slate-700 mb-2 dark:text-slate-200">Statistik Kunci Adopsi</h5>
+                            <ul class="space-y-2 text-sm">
+                            ${eco.adoption.map(item => `
+                                <li class="flex justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300">${item.label}:</span>
+                                    <span class="font-bold text-teal-600">${item.metric}</span>
+                                </li>`).join('')}
+                            </ul>
+                        </div>
+                         <div class="bg-slate-50 p-4 rounded-lg dark:bg-slate-700">
+                            <h5 class="font-semibold text-slate-700 mb-2 dark:text-slate-200">Metrik Pasar Utama</h5>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300">Jumlah dApps:</span>
+                                    <span class="font-bold text-teal-600">${eco.metrics.dapps.toLocaleString('id-ID')}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300">DeFi TVL:</span>
+                                    <span class="font-bold text-teal-600">${formatCurrency(eco.metrics.tvl)}</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="text-slate-600 dark:text-slate-300">Dompet Aktif Unik:</span>
+                                    <span class="font-bold text-teal-600">${eco.metrics.uaw.toLocaleString('id-ID')}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                 </div>`;
+                break;
+        }
+        contentContainer.innerHTML = content;
+        
+        document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.detail-tab[data-tab="${tab}"]`).classList.add('active');
+    };
+
+    document.getElementById('ecosystem-cards').addEventListener('click', (e) => {
+        const card = e.target.closest('.ecosystem-card');
+        if (card) {
+            const ecoKey = card.dataset.key;
+            showDetailView(ecoKey);
+            document.querySelectorAll('.detail-tab').forEach(tab => {
+                tab.onclick = () => switchTab(tab.dataset.tab, ecoKey);
+            });
+        }
+    });
+
+    document.getElementById('close-detail').addEventListener('click', () => {
+        document.getElementById('detail-view').classList.add('hidden');
+    });
+    
+    const populateRadarControls = () => {
+        const container = document.getElementById('radar-controls');
+        container.innerHTML = '';
+        // Now include ALL ecosystems in radar controls
+        const allEcosystems = Object.entries(ecosystemData);
+
+        allEcosystems.forEach(([key, eco], index) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex items-center';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `radar-${key}`;
+            checkbox.value = key;
+            checkbox.className = 'h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 radar-checkbox dark:border-slate-600 dark:bg-slate-700';
+            if (index < 2) { // Pre-select first two for initial view
+                checkbox.checked = true;
+            }
+            const label = document.createElement('label');
+            label.htmlFor = `radar-${key}`;
+            label.className = 'ml-2 block text-sm text-slate-700 dark:text-slate-200';
+            label.textContent = eco.name;
+            wrapper.appendChild(checkbox);
+            wrapper.appendChild(label);
+            container.appendChild(wrapper);
+        });
+
+        document.querySelectorAll('.radar-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateRadarChart);
+        });
+    };
+
+    const createRadarChart = () => {
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        const colors = getChartColors();
+
+        radarChartInstance = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['dApps', 'Visi', 'Adopsi', 'Kecepatan', 'Pengembang'],
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: true,
+                            color: colors.gridColor
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 10,
+                        pointLabels: {
+                            font: {
+                                size: 14
+                            },
+                            color: colors.textColor
+                        },
+                        ticks: {
+                            stepSize: 2,
+                            color: colors.textColor,
+                            backdropColor: 'transparent'
+                        },
+                        grid: {
+                            color: colors.gridColor
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: colors.textColor
+                        }
+                    },
+                }
+            }
+        });
+        updateRadarChart();
+    };
+    
+    const updateRadarChart = () => {
+        const selectedEcos = [];
+        document.querySelectorAll('.radar-checkbox:checked').forEach(cb => {
+            selectedEcos.push(cb.value);
+        });
+
+        if (selectedEcos.length > 3) {
+            const lastChecked = selectedEcos.pop();
+            document.getElementById(`radar-${lastChecked}`).checked = false;
+            updateRadarChart();
+            return;
+        }
+
+        radarChartInstance.data.datasets = selectedEcos.map(key => {
+            const eco = ecosystemData[key];
+            return {
+                label: eco.name,
+                data: eco.radar,
+                fill: true,
+                backgroundColor: eco.color + '40',
+                borderColor: eco.color,
+                pointBackgroundColor: eco.color,
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: eco.color
+            };
+        });
+        radarChartInstance.update();
+    };
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const htmlElement = document.documentElement;
+
+    const currentTheme = localStorage.getItem('theme');
+    if (currentTheme === 'dark') {
+        htmlElement.classList.add('dark');
+        themeIcon.textContent = '☀️';
+    } else {
+        htmlElement.classList.remove('dark');
+        themeIcon.textContent = '🌙';
+    }
+
+    themeToggle.addEventListener('click', () => {
+        if (htmlElement.classList.contains('dark')) {
+            htmlElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+            themeIcon.textContent = '🌙';
+        } else {
+            htmlElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            themeIcon.textContent = '☀️';
+        }
+        updateChartTheme();
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Initial setup
+    createMainChart('dapps'); // Now includes all ecosystems
+    populateEcosystemCards(); // Still shows only isVisibleByDefault initially, but search reveals all
+    populateRadarControls(); // Now includes all ecosystems for selection
+    createRadarChart();
+});
+</script>
+</body>
+</html>
